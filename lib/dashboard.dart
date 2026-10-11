@@ -751,10 +751,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   bool _soundEnabled = true;
 
   // Selectable alert sounds — auto-listed from assets/sounds/.
-  // Default is DefultLockdown.mp3. Just drop a new .mp3/.wav in that
+  // Default is Sus.mp3. Just drop a new .mp3/.wav in that
   // folder and it appears in Settings automatically (no code change).
   // ding.mp3 is the join chime — excluded from this leave/offline list.
-  String _selectedAlertSound = 'assets/sounds/DefultLockdown.mp3';
+  String _selectedAlertSound = 'assets/sounds/Sus.mp3';
   // Cached so Settings FutureBuilder doesn't restart (and reset scroll)
   // on every setState — e.g. live-session ticker ticks every second.
   Future<List<String>>? _soundAssetsFuture;
@@ -778,7 +778,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (_selectedAlertSound.toLowerCase().endsWith('ding.mp3') &&
           assets.isNotEmpty) {
         _selectedAlertSound = assets.firstWhere(
-          (a) => a.toLowerCase().contains('defultlockdown'),
+          _isDefaultAlertSound,
           orElse: () => assets.first,
         );
       }
@@ -794,6 +794,15 @@ class _DashboardScreenState extends State<DashboardScreen>
     final noExt = file.replaceAll(
         RegExp(r'\.(mp3|wav|ogg|m4a)$', caseSensitive: false), '');
     return noExt.replaceAll(RegExp(r'[_\-]+'), ' ');
+  }
+
+  /// True for the default leave/offline alert (Sus.mp3).
+  /// Keeps matching the old DefultLockdown.mp3 name so upgrades that
+  /// still have the old file keep working.
+  static bool _isDefaultAlertSound(String asset) {
+    final lower = asset.toLowerCase();
+    return lower.endsWith('sus.mp3') ||
+        lower.contains('defultlockdown');
   }
 
   Future<void> _playOwnerAlertSound() async {
@@ -813,10 +822,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (e) {
       debugPrint('Owner alert sound failed ($_selectedAlertSound): $e');
       // Fallback to default file if selected one is missing/corrupt.
-      if (_selectedAlertSound != 'assets/sounds/DefultLockdown.mp3') {
+      if (_selectedAlertSound != 'assets/sounds/Sus.mp3') {
         try {
           await _alertPlayer.play(
-              AssetSource('sounds/DefultLockdown.mp3'));
+              AssetSource('sounds/Sus.mp3'));
         } catch (_) {}
       }
     }
@@ -3259,9 +3268,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     // Auto-fallback if previously selected file was deleted.
                     if (!sounds.contains(_selectedAlertSound)) {
                       final def = sounds.firstWhere(
-                        (a) => a
-                            .toLowerCase()
-                            .contains('defultlockdown'),
+                        _isDefaultAlertSound,
                         orElse: () => sounds.first,
                       );
                       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -3273,9 +3280,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     return Column(
                       children: sounds.map((asset) {
                         final name = _soundDisplayName(asset);
-                        final isDefault = asset
-                            .toLowerCase()
-                            .contains('defultlockdown');
+                        final isDefault = _isDefaultAlertSound(asset);
                         final selected = _selectedAlertSound == asset;
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8),
