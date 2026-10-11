@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LockDown splash fallback: dark navy + centered LockDown logo -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#0F172A" />
+        </shape>
+    </item>
+
+    <item
+        android:width="192dp"
+        android:height="192dp"
+        android:drawable="@drawable/lockdown_logo"
+        android:gravity="center" />
+</layer-list>
